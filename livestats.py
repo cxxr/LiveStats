@@ -86,6 +86,8 @@ class Percentile:
 class LiveStats:
     def __init__(self, p = [0.5]):
         self.var_m2 = 0.0
+        self.kurt_m4 = 0.0
+        self.skew_m3 = 0.0
         self.average = 0.0
         self.count = 1
         self.tiles = {}
@@ -107,6 +109,12 @@ class LiveStats:
         for perc in self.tiles.values():
             perc.add(item)
 
+        # Kurtosis
+        self.kurt_m4 = self.kurt_m4 + (item - self.average)**4.0
+
+        # Skewness
+        self.skew_m3 = self.skew_m3 + (item - self.average)**3.0
+
 
     def percentiles(self):
         # We have enough data to generate the tiles
@@ -120,6 +128,12 @@ class LiveStats:
 
     def variance(self):
         return self.var_m2 / (self.count - 1)
+
+    def kurtosis(self):
+        return self.kurt_m4 / (self.count * self.variance()**2.0) - 3.0
+
+    def skewness(self):
+        return self.skew_m3 / (self.count * self.variance()**1.5)
 
 
 def bimodal( low1, high1, mode1, low2, high2, mode2 ):
@@ -137,9 +151,18 @@ def output (tiles, data, stats, name):
     for approx, exact in zip(tuples, med):
         pe = pe + (fabs(approx - exact)/fabs(exact))
     pe = 100.0 * pe / len(data)
+    avg = sum(data)/len(data)
 
-    print "{0}: Estimated: {1}, Actual: {2}, Avg: {3}, Stddev: {4} %Error {5}".format(name, 
-            tuples, med, stats.mean(), sqrt(stats.variance()), pe)
+    s2 = 0
+    for x in data:
+        s2 = s2 + (x - avg)**2
+    var = s2 / len(data)
+
+    v_pe = 100.0*fabs(stats.variance() - var)/fabs(var)
+    avg_pe = 100.0*fabs(stats.mean() - avg)/fabs(avg)
+
+    print "{}: Avg%E {} Var%E {} Perc%E {}, Kurtosis {}, Skewness {}".format(name, 
+            avg_pe, v_pe, pe, stats.kurtosis(), stats.skewness());
 
 
 if __name__ == '__main__':
