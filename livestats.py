@@ -1,91 +1,99 @@
 #!/usr/bin/env python
 
-from math import copysign
+from math import copysign,fabs
 import random, sys
 
 def calcP2(qp1, q, qm1, d, np1, n, nm1):
+    d = float(d)
+    n = float(n)
+    np1 = float(np1)
+    nm1 = float(nm1)
+
     outer = d / ( np1 - nm1 )
     inner_left = ( n - nm1 + d ) * ( qp1 - q ) / ( np1 - n )
     inner_right = ( np1 - n - d ) * ( q - qm1 ) / ( n - nm1 )
 
+    #print " {} / ( {} - {} )".format(d, np1, nm1)
+    #print "{} + {} * ( {} + {} )".format(q, outer, inner_left, inner_right)
+
     return q + outer * ( inner_left + inner_right)
 
-class LiveHistogram:
-    heights = []
-    initialized = False
+class LiveStats:
+    def __init__(self, p = [0.5]):
+        self.dn = {}
+        self.pos = {}
+        self.npos = {}
+        self.heights = {}
+        self.initialized = False
+        for i in p:
+            self.dn[i] = [0, i/2, i, (1 + i)/2, 1]
+            self.npos[i] = [1, 1 + 2*i, 1 + 4*i, 3 + 2*i, 5]
+            self.pos[i] = list(range(1, 6))
+            self.heights[i] = []
 
-    def __init__(self, num_cells = 10):
-        self.num_cells = num_cells + 1
-        self.pos = list(range(1, num_cells + 2))
-        self.npos = list(range(1, num_cells + 2))
-        self.i = self.num_cells
 
     def add(self, item):
-        if len(self.heights) < self.num_cells:
-            self.heights.append(item)
-        else:
-            if self.initialized == False:
-                self.heights.sort()
-                self.initialized = True
-
-            # find cell k
-            if self.heights[0] > item:
-                self.heights[0] = item
-                k = 1
+        for key in self.heights.keys():
+            if len(self.heights[key]) != 5:
+                self.heights[key].append(item)
+                return 0
             else:
-                for i in range(1, len(self.heights) - 1):
-                    if self.heights[i] < item and item < self.heights[i + 1]:
-                        k = i + 1
-                        break
+                if self.initialized == False:
+                    self.heights[key].sort()
+                    self.initialized = True
+
+                # find cell k
+                if item < self.heights[key][0]:
+                    self.heights[key][0] = item
+                    k = 1
                 else:
-                    k = self.num_cells
-                    self.pos[-1] = self.pos[-1] + 1
-                    if self.heights[-1] < item:
-                        self.heights[-1] = item
+                    for i in range(1, len(self.heights[key])):
+                        if self.heights[key][i - 1] <= item and item < self.heights[key][i]:
+                            k = i
+                            break
+                    else:
+                        k = 4
+                        if self.heights[key][-1] < item:
+                            self.heights[key][-1] = item
 
-            # increment all positions greater than k
-            if k < len(self.pos):
-                self.pos = self.pos[:k] + [x + 1 for x in self.pos[k:]]
+                # increment all positions greater than k
+                self.pos[key] = self.pos[key][:k] + [x + 1 for x in self.pos[key][k:]]
+                self.npos[key] = [x + y for x,y in zip(self.npos[key], self.dn[key])]
+                #print "{}\t{}\t{}\t{}".format(item, k, self.pos, self.npos)
 
-            copyn = self.pos[:]
-            desired = self.__adjust()
-            self.i = self.i + 1
-            #print "{}\t{}\t{}\t{}\t\t{}".format(self.i, item, k, copyn, desired)
+                self.__adjust(key)
 
-    def __adjust(self):
-        desired = []
-        desired.append(self.pos[0])
-        for i in range(1, self.num_cells - 1):
-            n = self.pos[i]
-            q = self.heights[i]
-            self.npos[i] = self.npos[i] + i*(n - self.pos[i - 1])/(self.num_cells - 1.0)
-            nn = self.npos[i]
+    def __adjust(self, key):
+        for i in range(1, len(self.heights[key]) - 1):
+            n = self.pos[key][i]
+            q = self.heights[key][i]
 
-            desired.append(nn)
+            d = self.npos[key][i] - n
 
-            dist = nn - n
-            back_dist = self.pos[i - 1] - n
-            forw_dist = self.pos[i + 1] - n
+            if (d >= 1 and self.pos[key][i + 1] - n > 1) or (d <= -1 and self.pos[key][i - 1] - n < -1):
+                d = int(copysign(1,d))
 
-            if (dist >= 1 and forw_dist > 1) or (dist <= -1 and back_dist < -1):
-                dist = int(copysign(1, dist))
-                qn = calcP2(self.heights[i + 1], q, self.heights[i - 1], dist, self.pos[i + 1], n, self.pos[i - 1])
+                qp1 = self.heights[key][i + 1]
+                qm1 = self.heights[key][i - 1]
+                np1 = self.pos[key][i + 1]
+                nm1 = self.pos[key][i - 1]
+                qn = calcP2(qp1, q, qm1, d, np1, n, nm1)
+                #print "{}: {}\n".format(i + 1, qn)
 
-                if self.heights[i - 1] < qn and qn < self.heights[i + 1]:
-                    self.heights[i] = qn
+                if qm1 < qn and qn < qp1:
+                    self.heights[key][i] = qn
                 else:
                     # use linear form
-                    self.heights[i] = q + dist * (self.heights[i + dist] - q) / (self.pos[i + dist] - n)
+                    self.heights[key][i] = q + d * (self.heights[key][i + d] - q) / (self.pos[key][i + d] - n)
 
-                self.pos[i] = n + dist
+                self.pos[key][i] = n + d
+        #print "{}\t{}".format(self.pos, self.heights)
 
-        desired.append(self.pos[-1])
-        return desired
 
-    def histogram(self):
+    def percentiles(self):
         if self.initialized == True:
-            # We have enough data to generate the histogram
-            return zip(self.pos, self.heights)
+            # We have enough data to generate the percentiles
+            return [x[2] for x in self.heights.values()]
         else:
             return []
 
@@ -97,52 +105,60 @@ def bimodal( low1, high1, mode1, low2, high2, mode2 ):
     else:
         return random.triangular( low2, high2, mode2 )
 
-def output (tuples, name):
-    print name + " histogram:"
-    for t in tuples:
-        print str(t[0]) + ": " + str(t[1])
+def output (tiles, data, tuples, name):
+    data.sort()
+    med = [data[int(len(data) * x)] for x in tiles]
+    pe = 0
+    for approx, exact in zip(tuples, med):
+        pe = pe + (fabs(approx - exact)/fabs(exact))
+    pe = 100.0 * pe / len(data)
+    avg = sum(data) / len(data)
+
+    print "{0}: Estimated: {1}, Actual: {2}, Avg: {3}, %Error {4}".format(name, tuples, med, avg, pe)
 
 
 if __name__ == '__main__':
     count = int(sys.argv[1])
     random.seed()
 
-    median = LiveHistogram(4)
-    test = [0.2, 0.5, 0.74, 3.39, 0.83, 22.37, 10.15, 15.43, 38.62, 15.92, 34.60,
+    tiles = [0.25, 0.5, 0.75]
+
+    median = LiveStats(tiles)
+    test = [0.02, 0.15, 0.74, 3.39, 0.83, 22.37, 10.15, 15.43, 38.62, 15.92, 34.60,
             10.28, 1.47, 0.40, 0.05, 11.39, 0.27, 0.42, 0.09, 11.37]
     for i in test:
         median.add(i)
 
-    output(median.histogram(), "Test")
+    output(tiles, test, median.percentiles(), "Test")
 
-    median = LiveHistogram()
+    median = LiveStats(tiles)
     x = list(range(count))
     random.shuffle(x)
     for i in x:
         median.add(i)
 
-    output(median.histogram(), "Uniform")
+    output(tiles, x, median.percentiles(), "Uniform")
 
-    median = LiveHistogram()
+    median = LiveStats(tiles)
     for i in range(count):
         x[i] = random.expovariate(1.0/435)
         median.add(x[i])
 
-    output(median.histogram(), "Random")
+    output(tiles, x, median.percentiles(), "Random")
 
-    median = LiveHistogram()
+    median = LiveStats(tiles)
     for i in range(count):
         x[i] = random.triangular(-1000, 1000, 999)
         median.add(x[i])
 
-    output(median.histogram(), "Triangular")
+    output(tiles, x, median.percentiles(), "Triangular")
 
-    median = LiveHistogram()
+    median = LiveStats(tiles)
     for i in range(count):
         x[i] = bimodal(0, 1000, 500, 500, 1500, 1400)
         median.add(x[i])
 
-    output(median.histogram(), "Bimodal")
+    output(tiles, x, median.percentiles(), "Bimodal")
 
 
 
