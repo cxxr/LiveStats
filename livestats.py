@@ -9,28 +9,89 @@ def calcP2(qp1, q, qm1, d, np1, n, nm1):
     np1 = float(np1)
     nm1 = float(nm1)
 
-    outer = d / ( np1 - nm1 )
-    inner_left = ( n - nm1 + d ) * ( qp1 - q ) / ( np1 - n )
-    inner_right = ( np1 - n - d ) * ( q - qm1 ) / ( n - nm1 )
+    outer = d / (np1 - nm1)
+    inner_left = (n - nm1 + d) * (qp1 - q ) / (np1 - n)
+    inner_right = (np1 - n - d) * (q - qm1 ) / (n - nm1)
 
-    return q + outer * ( inner_left + inner_right)
+    return q + outer * (inner_left + inner_right)
+
+class Percentile:
+    LEN = 5
+    def __init__(self, p):
+        self.dn = [0, p/2, p, (1 + p)/2, 1]
+        self.npos = [1, 1 + 2*p, 1 + 4*p, 3 + 2*p, 5]
+        self.pos = range(1, self.LEN + 1)
+        self.heights = []
+        self.initialized = False
+
+    def add(self, item):
+        if len(self.heights) != 5:
+            self.heights.append(item)
+        else:
+            if self.initialized == False:
+                self.heights.sort()
+                self.initialized = True
+
+            # find cell k
+            if item < self.heights[0]:
+                self.heights[0] = item
+                k = 1
+            else:
+                for i in range(1, self.LEN):
+                    if self.heights[i - 1] <= item and item < self.heights[i]:
+                        k = i
+                        break
+                else:
+                    k = 4
+                    if self.heights[-1] < item:
+                        self.heights[-1] = item
+
+            # increment all positions greater than k
+            self.pos = self.pos[:k] + [x + 1 for x in self.pos[k:]]
+            self.npos = [x + y for x,y in zip(self.npos, self.dn)]
+
+            self.__adjust()
+
+    def __adjust(self):
+        for i in range(1, self.LEN - 1):
+            n = self.pos[i]
+            q = self.heights[i]
+
+            d = self.npos[i] - n
+
+            if (d >= 1 and self.pos[i + 1] - n > 1) or (d <= -1 and self.pos[i - 1] - n < -1):
+                d = int(copysign(1,d))
+
+                qp1 = self.heights[i + 1]
+                qm1 = self.heights[i - 1]
+                np1 = self.pos[i + 1]
+                nm1 = self.pos[i - 1]
+                qn = calcP2(qp1, q, qm1, d, np1, n, nm1)
+
+                if qm1 < qn and qn < qp1:
+                    self.heights[i] = qn
+                else:
+                    # use linear form
+                    self.heights[i] = q + d * (self.heights[i + d] - q) / (self.pos[i + d] - n)
+
+                self.pos[i] = n + d
+
+    def percentile(self):
+        if self.initialized:
+            return self.heights[2]
+        else:
+            return 0
+
 
 class LiveStats:
     def __init__(self, p = [0.5]):
         self.var_m2 = 0.0
         self.average = 0.0
         self.count = 1
-        self.dn = {}
-        self.pos = {}
-        self.npos = {}
-        self.heights = {}
+        self.tiles = {}
         self.initialized = False
         for i in p:
-            self.dn[i] = [0, i/2, i, (1 + i)/2, 1]
-            self.npos[i] = [1, 1 + 2*i, 1 + 4*i, 3 + 2*i, 5]
-            self.pos[i] = list(range(1, 6))
-            self.heights[i] = []
-
+            self.tiles[i] = Percentile(i)
 
     def add(self, item):
         delta = item - self.average
@@ -42,66 +103,14 @@ class LiveStats:
         # Variance (except for the scale)
         self.var_m2 = self.var_m2 + delta * (item - self.average)
 
-        # Percentiles
-        for key in self.heights.keys():
-            if len(self.heights[key]) != 5:
-                self.heights[key].append(item)
-            else:
-                if self.initialized == False:
-                    self.heights[key].sort()
-                    self.initialized = True
-
-                # find cell k
-                if item < self.heights[key][0]:
-                    self.heights[key][0] = item
-                    k = 1
-                else:
-                    for i in range(1, len(self.heights[key])):
-                        if self.heights[key][i - 1] <= item and item < self.heights[key][i]:
-                            k = i
-                            break
-                    else:
-                        k = 4
-                        if self.heights[key][-1] < item:
-                            self.heights[key][-1] = item
-
-                # increment all positions greater than k
-                self.pos[key] = self.pos[key][:k] + [x + 1 for x in self.pos[key][k:]]
-                self.npos[key] = [x + y for x,y in zip(self.npos[key], self.dn[key])]
-
-                self.__adjust(key)
-
-    def __adjust(self, key):
-        for i in range(1, len(self.heights[key]) - 1):
-            n = self.pos[key][i]
-            q = self.heights[key][i]
-
-            d = self.npos[key][i] - n
-
-            if (d >= 1 and self.pos[key][i + 1] - n > 1) or (d <= -1 and self.pos[key][i - 1] - n < -1):
-                d = int(copysign(1,d))
-
-                qp1 = self.heights[key][i + 1]
-                qm1 = self.heights[key][i - 1]
-                np1 = self.pos[key][i + 1]
-                nm1 = self.pos[key][i - 1]
-                qn = calcP2(qp1, q, qm1, d, np1, n, nm1)
-
-                if qm1 < qn and qn < qp1:
-                    self.heights[key][i] = qn
-                else:
-                    # use linear form
-                    self.heights[key][i] = q + d * (self.heights[key][i + d] - q) / (self.pos[key][i + d] - n)
-
-                self.pos[key][i] = n + d
+        # tiles
+        for perc in self.tiles.values():
+            perc.add(item)
 
 
     def percentiles(self):
-        if self.initialized == True:
-            # We have enough data to generate the percentiles
-            return [x[2] for x in self.heights.values()]
-        else:
-            return []
+        # We have enough data to generate the tiles
+        return [x.percentile() for x in self.tiles.values()]
 
     def mean(self):
         return self.average
@@ -148,7 +157,7 @@ if __name__ == '__main__':
     output(tiles, test, median, "Test")
 
     median = LiveStats(tiles)
-    x = list(range(count))
+    x = range(count)
     random.shuffle(x)
     for i in x:
         median.add(i)
@@ -156,21 +165,21 @@ if __name__ == '__main__':
     output(tiles, x, median, "Uniform")
 
     median = LiveStats(tiles)
-    for i in range(count):
+    for i in xrange(count):
         x[i] = random.expovariate(1.0/435)
         median.add(x[i])
 
     output(tiles, x, median, "Random")
 
     median = LiveStats(tiles)
-    for i in range(count):
+    for i in xrange(count):
         x[i] = random.triangular(-1000, 1000, 999)
         median.add(x[i])
 
     output(tiles, x, median, "Triangular")
 
     median = LiveStats(tiles)
-    for i in range(count):
+    for i in xrange(count):
         x[i] = bimodal(0, 1000, 500, 500, 1500, 1400)
         median.add(x[i])
 

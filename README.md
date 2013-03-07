@@ -14,13 +14,14 @@ When constructing a LiveStats object, pass in an array of the percentiles you wi
 
     test = LiveStats([0.25, 0.5, 0.75])
 
-    data = [random.random() * 10 + x for x in range(100)]
+    data = (random.random() for x in iter(int, 1))
 
-    for x in data:
-        test.add(x)
+    for x in xrange(3):
+        for y in xrange(100):
+            test.add(data.next())
 
-    print "Average {}, stddev {}, percentiles {}".format(test.mean(), 
-            sqrt(test.variance()), test.percentiles())
+        print "Average {}, stddev {}, percentiles {}".format(test.mean(), 
+                sqrt(test.variance()), test.percentiles())
 
 Easy.
 
