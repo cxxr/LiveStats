@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from math import copysign,fabs
+from math import copysign,fabs,sqrt
 import random, sys
 
 def calcP2(qp1, q, qm1, d, np1, n, nm1):
@@ -20,6 +20,9 @@ def calcP2(qp1, q, qm1, d, np1, n, nm1):
 
 class LiveStats:
     def __init__(self, p = [0.5]):
+        self.var_m2 = 0.0
+        self.average = 0.0
+        self.count = 1
         self.dn = {}
         self.pos = {}
         self.npos = {}
@@ -33,6 +36,16 @@ class LiveStats:
 
 
     def add(self, item):
+        delta = item - self.average
+
+        # Average
+        self.average = (self.count * self.average + item) / (self.count + 1)
+        self.count = self.count + 1
+
+        # Variance (except for the scale)
+        self.var_m2 = self.var_m2 + delta * (item - self.average)
+
+        # Percentiles
         for key in self.heights.keys():
             if len(self.heights[key]) != 5:
                 self.heights[key].append(item)
@@ -97,6 +110,15 @@ class LiveStats:
         else:
             return []
 
+    def mean(self):
+        return self.average
+
+    def num(self):
+        return self.count
+
+    def variance(self):
+        return self.var_m2 / (self.count - 1)
+
 
 def bimodal( low1, high1, mode1, low2, high2, mode2 ):
     toss = random.choice( (1, 2) )
@@ -105,16 +127,17 @@ def bimodal( low1, high1, mode1, low2, high2, mode2 ):
     else:
         return random.triangular( low2, high2, mode2 )
 
-def output (tiles, data, tuples, name):
+def output (tiles, data, stats, name):
     data.sort()
+    tuples = stats.percentiles()
     med = [data[int(len(data) * x)] for x in tiles]
     pe = 0
     for approx, exact in zip(tuples, med):
         pe = pe + (fabs(approx - exact)/fabs(exact))
     pe = 100.0 * pe / len(data)
-    avg = sum(data) / len(data)
 
-    print "{0}: Estimated: {1}, Actual: {2}, Avg: {3}, %Error {4}".format(name, tuples, med, avg, pe)
+    print "{0}: Estimated: {1}, Actual: {2}, Avg: {3}, Stddev: {4} %Error {5}".format(name, 
+            tuples, med, stats.mean(), sqrt(stats.variance()), pe)
 
 
 if __name__ == '__main__':
@@ -129,7 +152,7 @@ if __name__ == '__main__':
     for i in test:
         median.add(i)
 
-    output(tiles, test, median.percentiles(), "Test")
+    output(tiles, test, median, "Test")
 
     median = LiveStats(tiles)
     x = list(range(count))
@@ -137,28 +160,28 @@ if __name__ == '__main__':
     for i in x:
         median.add(i)
 
-    output(tiles, x, median.percentiles(), "Uniform")
+    output(tiles, x, median, "Uniform")
 
     median = LiveStats(tiles)
     for i in range(count):
         x[i] = random.expovariate(1.0/435)
         median.add(x[i])
 
-    output(tiles, x, median.percentiles(), "Random")
+    output(tiles, x, median, "Random")
 
     median = LiveStats(tiles)
     for i in range(count):
         x[i] = random.triangular(-1000, 1000, 999)
         median.add(x[i])
 
-    output(tiles, x, median.percentiles(), "Triangular")
+    output(tiles, x, median, "Triangular")
 
     median = LiveStats(tiles)
     for i in range(count):
         x[i] = bimodal(0, 1000, 500, 500, 1500, 1400)
         median.add(x[i])
 
-    output(tiles, x, median.percentiles(), "Bimodal")
+    output(tiles, x, median, "Bimodal")
 
 
 
