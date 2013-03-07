@@ -47,7 +47,7 @@ class Percentile:
                         self.heights[-1] = item
 
             # increment all positions greater than k
-            self.pos = self.pos[:k] + [x + 1 for x in self.pos[k:]]
+            self.pos = [k if i < k else k + 1 for i,k in enumerate(self.pos)]
             self.npos = [x + y for x,y in zip(self.npos, self.dn)]
 
             self.__adjust()
