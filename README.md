@@ -10,8 +10,11 @@ When constructing a LiveStats object, pass in an array of the percentiles you wi
 
     from livestats import LiveStats
     from math import sqrt
+    import random
 
     test = LiveStats([0.25, 0.5, 0.75])
+
+    data = [random.random() * 10 + x for x in range(100)]
 
     for x in data:
         test.add(x)
