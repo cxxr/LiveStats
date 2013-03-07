@@ -13,9 +13,6 @@ def calcP2(qp1, q, qm1, d, np1, n, nm1):
     inner_left = ( n - nm1 + d ) * ( qp1 - q ) / ( np1 - n )
     inner_right = ( np1 - n - d ) * ( q - qm1 ) / ( n - nm1 )
 
-    #print " {} / ( {} - {} )".format(d, np1, nm1)
-    #print "{} + {} * ( {} + {} )".format(q, outer, inner_left, inner_right)
-
     return q + outer * ( inner_left + inner_right)
 
 class LiveStats:
@@ -72,7 +69,6 @@ class LiveStats:
                 # increment all positions greater than k
                 self.pos[key] = self.pos[key][:k] + [x + 1 for x in self.pos[key][k:]]
                 self.npos[key] = [x + y for x,y in zip(self.npos[key], self.dn[key])]
-                #print "{}\t{}\t{}\t{}".format(item, k, self.pos, self.npos)
 
                 self.__adjust(key)
 
@@ -91,7 +87,6 @@ class LiveStats:
                 np1 = self.pos[key][i + 1]
                 nm1 = self.pos[key][i - 1]
                 qn = calcP2(qp1, q, qm1, d, np1, n, nm1)
-                #print "{}: {}\n".format(i + 1, qn)
 
                 if qm1 < qn and qn < qp1:
                     self.heights[key][i] = qn
@@ -100,7 +95,6 @@ class LiveStats:
                     self.heights[key][i] = q + d * (self.heights[key][i + d] - q) / (self.pos[key][i + d] - n)
 
                 self.pos[key][i] = n + d
-        #print "{}\t{}".format(self.pos, self.heights)
 
 
     def percentiles(self):
