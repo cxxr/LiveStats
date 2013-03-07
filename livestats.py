@@ -46,7 +46,6 @@ class LiveStats:
         for key in self.heights.keys():
             if len(self.heights[key]) != 5:
                 self.heights[key].append(item)
-                return 0
             else:
                 if self.initialized == False:
                     self.heights[key].sort()
