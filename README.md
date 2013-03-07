@@ -24,6 +24,17 @@ When constructing a LiveStats object, pass in an array of the percentiles you wi
 
 Easy.
 
+## How accurate is it?
+
+Very accurate. If you run livestats.py as a script with a numeric argument, it'll run some tests with that many data points. As soon as you start to get over 10,000 elements, accuracy to the actual percentiles is well below 1%. At 10,000,000, it's this:
+
+    Uniform: %Error 1.91823416272e-10
+    Random: %Error 1.18853157508e-09
+    Triangular: %Error 1.15713743667e-06
+    Bimodal: %Error 9.98699912316e-11
+
+That's average percent error for four different random distributions at three percentiles, 25th, 50th, and 75th. Pretty good.   
+
 # More details
 
 LiveStats uses the [P-Square Algorithm for Dynamic Calculation of Quantiles and Histograms without Storing Observations](http://www.cs.wustl.edu/~jain/papers/ftp/psqr.pdf) and other online statistical algorithms.
