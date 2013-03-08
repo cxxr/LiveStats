@@ -15,10 +15,10 @@ def calcP2(qp1, q, qm1, d, np1, n, nm1):
 
     return q + outer * (inner_left + inner_right)
 
-class Percentile:
+class Quantile:
     LEN = 5
     def __init__(self, p):
-        """ Constructs a single Percentile object """
+        """ Constructs a single quantile object """
         self.dn = [0, p/2, p, (1 + p)/2, 1]
         self.npos = [1, 1 + 2*p, 1 + 4*p, 3 + 2*p, 5]
         self.pos = range(1, self.LEN + 1)
@@ -78,7 +78,7 @@ class Percentile:
 
                 self.pos[i] = n + d
 
-    def percentile(self):
+    def quantile(self):
         if self.initialized:
             return self.heights[2]
         else:
@@ -91,7 +91,7 @@ class LiveStats:
 
         Keyword arguments:
 
-        p -- A list of percentiles to track, by default, [0.5]
+        p -- A list of quantiles to track, by default, [0.5]
 
         """
         self.var_m2 = 0.0
@@ -102,7 +102,7 @@ class LiveStats:
         self.tiles = {}
         self.initialized = False
         for i in p:
-            self.tiles[i] = Percentile(i)
+            self.tiles[i] = Quantile(i)
 
     def add(self, item):
         """ Adds another datum """
@@ -126,9 +126,9 @@ class LiveStats:
         self.skew_m3 = self.skew_m3 + (item - self.average)**3.0
 
 
-    def percentiles(self):
-        """ Returns a list of tuples of the percentile and its location """
-        return [(key, val.percentile()) for key, val in self.tiles.iteritems()]
+    def quantiles(self):
+        """ Returns a list of tuples of the quantile and its location """
+        return [(key, val.quantile()) for key, val in self.tiles.iteritems()]
 
     def mean(self):
         """ Returns the cumulative moving average of the data """
@@ -160,7 +160,7 @@ def bimodal( low1, high1, mode1, low2, high2, mode2 ):
 
 def output (tiles, data, stats, name):
     data.sort()
-    tuples = [x[1] for x in stats.percentiles()]
+    tuples = [x[1] for x in stats.quantiles()]
     med = [data[int(len(data) * x)] for x in tiles]
     pe = 0
     for approx, exact in zip(tuples, med):
