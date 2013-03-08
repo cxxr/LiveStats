@@ -18,6 +18,7 @@ def calcP2(qp1, q, qm1, d, np1, n, nm1):
 class Percentile:
     LEN = 5
     def __init__(self, p):
+        """ Constructs a single Percentile object """
         self.dn = [0, p/2, p, (1 + p)/2, 1]
         self.npos = [1, 1 + 2*p, 1 + 4*p, 3 + 2*p, 5]
         self.pos = range(1, self.LEN + 1)
@@ -25,6 +26,7 @@ class Percentile:
         self.initialized = False
 
     def add(self, item):
+        """ Adds another datum """
         if len(self.heights) != 5:
             self.heights.append(item)
         else:
@@ -85,6 +87,13 @@ class Percentile:
 
 class LiveStats:
     def __init__(self, p = [0.5]):
+        """ Constructs a LiveStream object
+
+        Keyword arguments:
+
+        p -- A list of percentiles to track, by default, [0.5]
+
+        """
         self.var_m2 = 0.0
         self.kurt_m4 = 0.0
         self.skew_m3 = 0.0
@@ -96,6 +105,7 @@ class LiveStats:
             self.tiles[i] = Percentile(i)
 
     def add(self, item):
+        """ Adds another datum """
         delta = item - self.average
 
         # Average
@@ -117,22 +127,27 @@ class LiveStats:
 
 
     def percentiles(self):
-        # We have enough data to generate the tiles
-        return [x.percentile() for x in self.tiles.values()]
+        """ Returns a list of tuples of the percentile and its location """
+        return [(key, val.percentile()) for key, val in self.tiles.iteritems()]
 
     def mean(self):
+        """ Returns the cumulative moving average of the data """
         return self.average
 
     def num(self):
+        """ Returns the number of items added so far"""
         return self.count
 
     def variance(self):
+        """ Returns the sample variance of the data given so far"""
         return self.var_m2 / (self.count - 1)
 
     def kurtosis(self):
+        """ Returns the sample kurtosis of the data given so far"""
         return self.kurt_m4 / (self.count * self.variance()**2.0) - 3.0
 
     def skewness(self):
+        """ Returns the sample skewness of the data given so far"""
         return self.skew_m3 / (self.count * self.variance()**1.5)
 
 
