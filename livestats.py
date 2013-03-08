@@ -160,7 +160,7 @@ def bimodal( low1, high1, mode1, low2, high2, mode2 ):
 
 def output (tiles, data, stats, name):
     data.sort()
-    tuples = stats.percentiles()
+    tuples = [x[1] for x in stats.percentiles()]
     med = [data[int(len(data) * x)] for x in tiles]
     pe = 0
     for approx, exact in zip(tuples, med):
@@ -176,8 +176,8 @@ def output (tiles, data, stats, name):
     v_pe = 100.0*fabs(stats.variance() - var)/fabs(var)
     avg_pe = 100.0*fabs(stats.mean() - avg)/fabs(avg)
 
-    print "{}: Avg%E {} Var%E {} Perc%E {}, Kurtosis {}, Skewness {}".format(name, 
-            avg_pe, v_pe, pe, stats.kurtosis(), stats.skewness());
+    print "{}: Avg%E {} Var%E {} Perc%E {}, Kurtosis {}, Skewness {}".format(
+            name, avg_pe, v_pe, pe, stats.kurtosis(), stats.skewness());
 
 
 if __name__ == '__main__':
@@ -207,11 +207,11 @@ if __name__ == '__main__':
         x[i] = random.expovariate(1.0/435)
         median.add(x[i])
 
-    output(tiles, x, median, "Random")
+    output(tiles, x, median, "Expovar")
 
     median = LiveStats(tiles)
     for i in xrange(count):
-        x[i] = random.triangular(-1000, 1000, 999)
+        x[i] = random.triangular(-1000*count/10, 1000*count/10, 100)
         median.add(x[i])
 
     output(tiles, x, median, "Triangular")
