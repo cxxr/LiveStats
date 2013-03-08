@@ -176,7 +176,7 @@ def output (tiles, data, stats, name):
     v_pe = 100.0*fabs(stats.variance() - var)/fabs(var)
     avg_pe = 100.0*fabs(stats.mean() - avg)/fabs(avg)
 
-    print "{}: Avg%E {} Var%E {} Perc%E {}, Kurtosis {}, Skewness {}".format(
+    print "{}: Avg%E {} Var%E {} Quant%E {}, Kurtosis {}, Skewness {}".format(
             name, avg_pe, v_pe, pe, stats.kurtosis(), stats.skewness());
 
 

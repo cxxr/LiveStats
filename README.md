@@ -29,10 +29,10 @@ Easy.
 
 Very accurate. If you run livestats.py as a script with a numeric argument, it'll run some tests with that many data points. As soon as you start to get over 10,000 elements, accuracy to the actual quantiles is well below 1%. At 10,000,000, it's this:
 
-    Uniform:    Avg%E 1.732260e-12 Var%E 2.999999e-05 Perc%E 1.315983e-05
-    Expovar:    Avg%E 9.999994e-06 Var%E 1.000523e-05 Perc%E 1.741774e-05
-    Triangular: Avg%E 9.988727e-06 Var%E 4.839340e-12 Perc%E 0.015595
-    Bimodal:    Avg%E 9.999991e-06 Var%E 4.555303e-05 Perc%E 9.047849e-06
+    Uniform:    Avg%E 1.732260e-12 Var%E 2.999999e-05 Quant%E 1.315983e-05
+    Expovar:    Avg%E 9.999994e-06 Var%E 1.000523e-05 Quant%E 1.741774e-05
+    Triangular: Avg%E 9.988727e-06 Var%E 4.839340e-12 Quant%E 0.015595
+    Bimodal:    Avg%E 9.999991e-06 Var%E 4.555303e-05 Quant%E 9.047849e-06
 
 That's percent error for the cumulative moving average, variance, and the average percent error for four different random distributions at three quantiules, 25th, 50th, and 75th. Pretty good.
 
