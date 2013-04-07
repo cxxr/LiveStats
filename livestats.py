@@ -21,7 +21,7 @@ class Quantile:
         """ Constructs a single quantile object """
         self.dn = [0, p/2, p, (1 + p)/2, 1]
         self.npos = [1, 1 + 2*p, 1 + 4*p, 3 + 2*p, 5]
-        self.pos = range(1, self.LEN + 1)
+        self.pos = list(range(1, self.LEN + 1))
         self.heights = []
         self.initialized = False
 
@@ -116,7 +116,7 @@ class LiveStats:
         self.var_m2 = self.var_m2 + delta * (item - self.average)
 
         # tiles
-        for perc in self.tiles.values():
+        for perc in list(self.tiles.values()):
             perc.add(item)
 
         # Kurtosis
@@ -128,7 +128,7 @@ class LiveStats:
 
     def quantiles(self):
         """ Returns a list of tuples of the quantile and its location """
-        return [(key, val.quantile()) for key, val in self.tiles.iteritems()]
+        return [(key, val.quantile()) for key, val in self.tiles.items()]
 
     def mean(self):
         """ Returns the cumulative moving average of the data """
@@ -176,8 +176,8 @@ def output (tiles, data, stats, name):
     v_pe = 100.0*fabs(stats.variance() - var)/fabs(var)
     avg_pe = 100.0*fabs(stats.mean() - avg)/fabs(avg)
 
-    print "{}: Avg%E {} Var%E {} Quant%E {}, Kurtosis {}, Skewness {}".format(
-            name, avg_pe, v_pe, pe, stats.kurtosis(), stats.skewness());
+    print("{}: Avg%E {} Var%E {} Quant%E {}, Kurtosis {}, Skewness {}".format(
+            name, avg_pe, v_pe, pe, stats.kurtosis(), stats.skewness()));
 
 
 if __name__ == '__main__':
@@ -195,7 +195,7 @@ if __name__ == '__main__':
     output(tiles, test, median, "Test")
 
     median = LiveStats(tiles)
-    x = range(count)
+    x = list(range(count))
     random.shuffle(x)
     for i in x:
         median.add(i)
@@ -203,21 +203,21 @@ if __name__ == '__main__':
     output(tiles, x, median, "Uniform")
 
     median = LiveStats(tiles)
-    for i in xrange(count):
+    for i in range(count):
         x[i] = random.expovariate(1.0/435)
         median.add(x[i])
 
     output(tiles, x, median, "Expovar")
 
     median = LiveStats(tiles)
-    for i in xrange(count):
+    for i in range(count):
         x[i] = random.triangular(-1000*count/10, 1000*count/10, 100)
         median.add(x[i])
 
     output(tiles, x, median, "Triangular")
 
     median = LiveStats(tiles)
-    for i in xrange(count):
+    for i in range(count):
         x[i] = bimodal(0, 1000, 500, 500, 1500, 1400)
         median.add(x[i])
 
