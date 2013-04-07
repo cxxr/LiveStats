@@ -4,6 +4,8 @@ LiveStats solves the problem of generating accurate statistics for when your dat
 
 LiveStats doesn't keep any items in memory, only estimates of the statistics. This means you can calculate statistics on an arbitrary amount of data.
 
+LiveStats supports Python 2.7+ and Python 3.2+ and doesn't rely on any external Python libraries.
+
 ## Example usage
 
 When constructing a LiveStats object, pass in an array of the quantiles you wish you track. LiveStats stores 15 double values per quantile supplied.
@@ -25,6 +27,11 @@ When constructing a LiveStats object, pass in an array of the quantiles you wish
 
 Easy.
 
+# FAQ
+
+## How does this work? 
+LiveStats uses the [P-Square Algorithm for Dynamic Calculation of Quantiles and Histograms without Storing Observations](http://www.cs.wustl.edu/~jain/papers/ftp/psqr.pdf) and other online statistical algorithms. I also [wrote a post](http://blog.existentialize.com/on-accepting-interview-question-answers.html) on where I got this idea.
+
 ## How accurate is it?
 
 Very accurate. If you run livestats.py as a script with a numeric argument, it'll run some tests with that many data points. As soon as you start to get over 10,000 elements, accuracy to the actual quantiles is well below 1%. At 10,000,000, it's this:
@@ -36,7 +43,8 @@ Very accurate. If you run livestats.py as a script with a numeric argument, it'l
 
 That's percent error for the cumulative moving average, variance, and the average percent error for four different random distributions at three quantiules, 25th, 50th, and 75th. Pretty good.
 
-# More details
 
-LiveStats uses the [P-Square Algorithm for Dynamic Calculation of Quantiles and Histograms without Storing Observations](http://www.cs.wustl.edu/~jain/papers/ftp/psqr.pdf) and other online statistical algorithms. I also [wrote a post](http://blog.existentialize.com/on-accepting-interview-question-answers.html) on where I got this idea.
+## Why didn't you use NumPy?
+
+I didn't think it would help that much. LiveStats doesn't work on large arrays and I wanted PyPy support, which NumPy currently lacks. I'm curious about any and all performance improvements, so please contact me if you think NumPy (or anything else) would help.
 
