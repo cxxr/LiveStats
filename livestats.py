@@ -49,7 +49,7 @@ class Quantile:
                         self.heights[-1] = item
 
             # increment all positions greater than k
-            self.pos = [k if i < k else k + 1 for i,k in enumerate(self.pos)]
+            self.pos = [j if i < k else j + 1 for i,j in enumerate(self.pos)]
             self.npos = [x + y for x,y in zip(self.npos, self.dn)]
 
             self.__adjust()
