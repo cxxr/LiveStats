@@ -27,6 +27,8 @@ When constructing a LiveStats object, pass in an array of the quantiles you wish
 
 Easy.
 
+There are plenty of other methods too, such as minimum, maximum, [kurtosis](http://en.wikipedia.org/wiki/Kurtosis), and [skewness](http://en.wikipedia.org/wiki/Skewness).
+
 # FAQ
 
 ## How does this work? 

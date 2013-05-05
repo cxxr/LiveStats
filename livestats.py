@@ -94,6 +94,8 @@ class LiveStats:
         p -- A list of quantiles to track, by default, [0.5]
 
         """
+        self.min_val = float('inf')
+        self.max_val = float('-inf')
         self.var_m2 = 0.0
         self.kurt_m4 = 0.0
         self.skew_m3 = 0.0
@@ -107,6 +109,9 @@ class LiveStats:
     def add(self, item):
         """ Adds another datum """
         delta = item - self.average
+
+        self.min_val = min(self.min_val, item)
+        self.max_val = max(self.max_val, item)
 
         # Average
         self.average = (self.count * self.average + item) / (self.count + 1)
@@ -130,9 +135,17 @@ class LiveStats:
         """ Returns a list of tuples of the quantile and its location """
         return [(key, val.quantile()) for key, val in self.tiles.items()]
 
+    def maximum(self):
+        """ Returns the maximum value given """
+        return self.max_val
+
     def mean(self):
         """ Returns the cumulative moving average of the data """
         return self.average
+
+    def minimum(self):
+        """ Returns the minimum value given """
+        return self.min_val
 
     def num(self):
         """ Returns the number of items added so far"""
