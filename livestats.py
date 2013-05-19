@@ -104,7 +104,7 @@ class LiveStats:
         self.kurt_m4 = 0.0
         self.skew_m3 = 0.0
         self.average = 0.0
-        self.count = 1
+        self.count = 0
         self.tiles = {}
         self.initialized = False
         for i in p:
@@ -157,15 +157,24 @@ class LiveStats:
 
     def variance(self):
         """ Returns the sample variance of the data given so far"""
-        return self.var_m2 / (self.count - 1)
+        if self.count > 1:
+            return self.var_m2 / (self.count - 1)
+        else:
+            return float('NaN')
 
     def kurtosis(self):
         """ Returns the sample kurtosis of the data given so far"""
-        return self.kurt_m4 / (self.count * self.variance()**2.0) - 3.0
+        if self.count > 1:
+            return self.kurt_m4 / (self.count * self.variance()**2.0) - 3.0
+        else:
+            return float('NaN')
 
     def skewness(self):
         """ Returns the sample skewness of the data given so far"""
-        return self.skew_m3 / (self.count * self.variance()**1.5)
+        if self.count > 1:
+            return self.skew_m3 / (self.count * self.variance()**1.5)
+        else:
+            return float('NaN')
 
 
 def bimodal( low1, high1, mode1, low2, high2, mode2 ):
