@@ -24,10 +24,11 @@ class Quantile:
         self.pos = list(range(1, self.LEN + 1))
         self.heights = []
         self.initialized = False
+        self.p = p
 
     def add(self, item):
         """ Adds another datum """
-        if len(self.heights) != 5:
+        if len(self.heights) != self.LEN:
             self.heights.append(item)
         else:
             if self.initialized == False:
@@ -82,7 +83,10 @@ class Quantile:
         if self.initialized:
             return self.heights[2]
         else:
-            return 0
+            self.heights.sort()
+            l = len(self.heights)
+            # make sure we don't overflow on p == 1 or underflow on p == 0
+            return self.heights[int(min(max(l - 1, 0), l * self.p))]
 
 
 class LiveStats:
