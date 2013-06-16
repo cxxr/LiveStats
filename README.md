@@ -8,13 +8,17 @@ LiveStats supports Python 2.7+ and Python 3.2+ and doesn't rely on any external 
 
 ## Example usage
 
+First install LiveStats
+
+    $ pip install LiveStats
+
 When constructing a LiveStats object, pass in an array of the quantiles you wish you track. LiveStats stores 15 double values per quantile supplied.
 
-    from livestats import LiveStats
+    from livestats import livestats
     from math import sqrt
     import random
 
-    test = LiveStats([0.25, 0.5, 0.75])
+    test = livestats.LiveStats([0.25, 0.5, 0.75])
 
     data = iter(random.random, 1)
 
