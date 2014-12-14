@@ -91,7 +91,7 @@ class Quantile:
 
 class LiveStats:
     def __init__(self, p = [0.5]):
-        """ Constructs a LiveStream object
+        """ Constructs a LiveStats object
 
         Keyword arguments:
 
