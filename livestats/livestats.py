@@ -158,7 +158,7 @@ class LiveStats:
     def variance(self):
         """ Returns the sample variance of the data given so far"""
         if self.count > 1:
-            return self.var_m2 / (self.count - 1)
+            return self.var_m2 / self.count
         else:
             return float('NaN')
 
