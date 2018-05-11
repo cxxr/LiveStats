@@ -36,7 +36,7 @@ There are plenty of other methods too, such as minimum, maximum, [kurtosis](http
 # FAQ
 
 ## How does this work? 
-LiveStats uses the [P-Square Algorithm for Dynamic Calculation of Quantiles and Histograms without Storing Observations](http://www.cs.wustl.edu/~jain/papers/ftp/psqr.pdf) and other online statistical algorithms. I also [wrote a post](http://blog.existentialize.com/on-accepting-interview-question-answers.html) on where I got this idea.
+LiveStats uses the [P-Square Algorithm for Dynamic Calculation of Quantiles and Histograms without Storing Observations](http://www.cs.wustl.edu/~jain/papers/ftp/psqr.pdf) and other online statistical algorithms. I also [wrote a post](https://www.seancassidy.me/on-accepting-interview-question-answers.html) on where I got this idea.
 
 ## How accurate is it?
 
