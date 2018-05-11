@@ -91,7 +91,7 @@ class Quantile:
 
 class LiveStats:
     def __init__(self, p = [0.5]):
-        """ Constructs a LiveStream object
+        """ Constructs a LiveStats object
 
         Keyword arguments:
 
@@ -158,7 +158,7 @@ class LiveStats:
     def variance(self):
         """ Returns the sample variance of the data given so far"""
         if self.count > 1:
-            return self.var_m2 / (self.count - 1)
+            return self.var_m2 / self.count
         else:
             return float('NaN')
 
